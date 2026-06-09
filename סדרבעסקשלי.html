@@ -1,0 +1,925 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MIRIPRATY - פאנל ניהול ומעקב סטארט-אפ</title>
+    <link href="https://fonts.googleapis.com/css2?family=Assistant:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            /* צבעי מותג בהשראת הלוגו */
+            --brand-pink: #ec4899;
+            --brand-coral: #f43f5e;
+            --brand-blue: #2563eb;
+            --brand-dark-blue: #1e3a8a;
+            --brand-gradient: linear-gradient(135deg, #f43f5e 0%, #ec4899 40%, #2563eb 100%);
+            
+            --bg-color: #f8fafc;
+            --card-bg: #ffffff;
+            --text-color: #1e293b;
+            --text-muted: #64748b;
+            --border-color: #e2e8f0;
+            --success-color: #10b981;
+            --danger-color: #ef4444;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Assistant', sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+        }
+
+        header {
+            background: var(--brand-gradient);
+            color: white;
+            padding: 2.5rem 2rem;
+            text-align: center;
+            box-shadow: 0 4px 15px rgba(236, 72, 153, 0.15);
+            position: relative;
+        }
+
+        header h1 {
+            font-size: 3rem;
+            font-weight: 700;
+            letter-spacing: 2px;
+            margin-bottom: 0.5rem;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        header p {
+            font-size: 1.2rem;
+            opacity: 0.95;
+            font-weight: 300;
+        }
+
+        .container {
+            max-width: 1300px;
+            width: 100%;
+            margin: 2rem auto;
+            padding: 0 1.5rem;
+            flex: 1;
+        }
+
+        /* קאונטרים מהירים */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .stat-card {
+            background: var(--card-bg);
+            border-radius: 12px;
+            padding: 1.2rem;
+            text-align: center;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+            border-right: 4px solid var(--brand-pink);
+        }
+        .stat-card:nth-child(2) { border-right-color: #a855f7; }
+        .stat-card:nth-child(3) { border-right-color: var(--brand-blue); }
+        .stat-card:nth-child(4) { border-right-color: var(--success-color); }
+
+        .stat-card h4 { font-size: 1rem; color: var(--text-muted); margin-bottom: 0.5rem; }
+        .stat-card .number { font-size: 1.8rem; font-weight: 700; color: var(--text-color); }
+
+        /* שורת חיפוש כללית */
+        .search-container {
+            margin-bottom: 1.5rem;
+            display: flex;
+            justify-content: flex-end;
+        }
+        .search-control {
+            width: 100%;
+            max-width: 350px;
+            padding: 0.6rem 1rem;
+            border: 1px solid var(--border-color);
+            border-radius: 20px;
+            font-size: 0.95rem;
+            outline: none;
+            transition: all 0.3s;
+        }
+        .search-control:focus {
+            border-color: var(--brand-pink);
+            box-shadow: 0 0 0 3px rgba(236, 72, 153, 0.1);
+        }
+
+        /* ניווט טאבים */
+        .tabs-nav {
+            display: flex;
+            gap: 0.5rem;
+            border-bottom: 2px solid var(--border-color);
+            margin-bottom: 2rem;
+            overflow-x: auto;
+            padding-bottom: 2px;
+        }
+
+        .tab-btn {
+            background: none;
+            border: none;
+            padding: 1rem 1.4rem;
+            font-size: 1.05rem;
+            font-weight: 600;
+            color: var(--text-muted);
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border-radius: 8px 8px 0 0;
+            white-space: nowrap;
+        }
+
+        .tab-btn:hover {
+            color: var(--brand-pink);
+            background-color: rgba(236, 72, 153, 0.03);
+        }
+
+        .tab-btn.active {
+            color: var(--brand-pink);
+            border-bottom: 3px solid var(--brand-pink);
+            background-color: rgba(236, 72, 153, 0.06);
+        }
+
+        /* תוכן טאבים */
+        .tab-content {
+            display: none;
+            animation: fadeIn 0.4s ease;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(8px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* גריד ומבנה כרטיסיות */
+        .panel-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 2rem;
+        }
+
+        @media (min-width: 768px) {
+            .panel-grid {
+                grid-template-columns: 360px 1fr;
+            }
+        }
+
+        .card {
+            background-color: var(--card-bg);
+            border-radius: 16px;
+            padding: 1.8rem;
+            box-shadow: 0 10px 15px -3px rgba(0,0,0,0.02), 0 4px 6px -2px rgba(0,0,0,0.02);
+            border: 1px solid var(--border-color);
+            height: fit-content;
+        }
+
+        .card h3 {
+            margin-bottom: 1.5rem;
+            font-size: 1.35rem;
+            color: var(--brand-dark-blue);
+            border-bottom: 2px solid #f1f5f9;
+            padding-bottom: 0.6rem;
+            position: relative;
+        }
+
+        .card h3::after {
+            content: '';
+            position: absolute;
+            bottom: -2px;
+            right: 0;
+            width: 50px;
+            height: 2px;
+            background: var(--brand-pink);
+        }
+
+        /* טפסים */
+        .form-group {
+            margin-bottom: 1.2rem;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 600;
+            font-size: 0.95rem;
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 0.75rem 1rem;
+            border: 1px solid var(--border-color);
+            border-radius: 10px;
+            font-size: 1rem;
+            transition: all 0.2s;
+            background-color: #fafafa;
+        }
+
+        .form-control:focus {
+            outline: none;
+            border-color: var(--brand-blue);
+            background-color: #fff;
+            box-shadow: 0 0 0 3px rgba(37, 99, 241, 0.1);
+        }
+
+        textarea.form-control {
+            resize: vertical;
+            min-height: 100px;
+        }
+
+        .file-upload-wrapper {
+            position: relative;
+            border: 2px dashed var(--border-color);
+            border-radius: 10px;
+            padding: 1.5rem;
+            text-align: center;
+            background: #fafafa;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        .file-upload-wrapper:hover {
+            border-color: var(--brand-pink);
+            background: rgba(236, 72, 153, 0.01);
+        }
+        .file-upload-wrapper input[type="file"] {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            opacity: 0;
+            cursor: pointer;
+        }
+        .file-upload-text {
+            color: var(--text-muted);
+            font-size: 0.9rem;
+        }
+
+        .btn {
+            display: inline-block;
+            width: 100%;
+            padding: 0.85rem 1rem;
+            background: var(--brand-gradient);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 1.05rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s, opacity 0.2s;
+            text-align: center;
+            box-shadow: 0 4px 10px rgba(236, 72, 153, 0.2);
+        }
+
+        .btn:hover {
+            transform: translateY(-1px);
+            opacity: 0.95;
+        }
+
+        /* טבלאות ותצוגה */
+        .table-container {
+            overflow-x: auto;
+            background: var(--card-bg);
+            border-radius: 16px;
+            border: 1px solid var(--border-color);
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.02);
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            text-align: right;
+        }
+
+        th, td {
+            padding: 1.1rem;
+            border-bottom: 1px solid var(--border-color);
+            vertical-align: middle;
+        }
+
+        th {
+            background-color: #f8fafc;
+            color: var(--brand-dark-blue);
+            font-weight: 700;
+        }
+
+        tr:hover {
+            background-color: #fdfdfd;
+        }
+
+        /* כפתורי פעולות בשורות */
+        .action-buttons {
+            display: flex;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+        }
+
+        .btn-sm {
+            background-color: transparent;
+            border: 1px solid var(--border-color);
+            padding: 0.4rem 0.8rem;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 0.85rem;
+            transition: all 0.2s;
+            font-weight: 600;
+        }
+
+        .btn-delete {
+            color: var(--danger-color);
+            border-color: var(--danger-color);
+        }
+        .btn-delete:hover {
+            background-color: var(--danger-color);
+            color: white;
+        }
+
+        .btn-copy {
+            color: var(--success-color);
+            border-color: var(--success-color);
+        }
+        .btn-copy:hover {
+            background-color: var(--success-color);
+            color: white;
+        }
+
+        .link-action {
+            color: var(--brand-blue);
+            text-decoration: none;
+            font-weight: 600;
+        }
+        .link-action:hover {
+            text-decoration: underline;
+        }
+
+        .thumbnail-preview {
+            width: 60px;
+            height: 45px;
+            object-fit: cover;
+            border-radius: 6px;
+            border: 1px solid var(--border-color);
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+        .thumbnail-preview:hover {
+            transform: scale(1.1);
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 3rem;
+            color: var(--text-muted);
+            font-style: italic;
+        }
+
+        /* מודאל פופ-אפ להגדלת תמונות */
+        .lightbox {
+            display: none;
+            position: fixed;
+            top:0; left:0; width:100%; height:100%;
+            background: rgba(15, 23, 42, 0.8);
+            z-index: 9999;
+            justify-content: center;
+            align-items: center;
+            padding: 2rem;
+        }
+        .lightbox.active { display: flex; }
+        .lightbox img {
+            max-width: 90%;
+            max-height: 85vh;
+            border-radius: 12px;
+            box-shadow: 0 25px 50px -12px rgba(0,0,0,0.5);
+        }
+        .lightbox-close {
+            position: absolute;
+            top: 20px; right: 20px;
+            color: white; font-size: 2rem; cursor: pointer;
+            background: none; border: none;
+        }
+
+        footer {
+            background-color: #0f172a;
+            color: #94a3b8;
+            text-align: center;
+            padding: 2rem;
+            margin-top: auto;
+            font-size: 0.95rem;
+            border-top: 1px solid #1e293b;
+        }
+        footer a { color: #f43f5e; text-decoration: none; font-weight: 600; }
+        footer a:hover { text-decoration: underline; }
+    </style>
+</head>
+<body>
+
+    <header>
+        <h1>MIRIPRATY</h1>
+        <p>מערכת הניהול המאובטחת והחכמה של הסטארט-אפ שלך • מבית SWIFT</p>
+    </header>
+
+    <div class="container">
+        
+        <div class="stats-grid">
+            <div class="stat-card">
+                <h4>סך מצטרפות בקבוצה</h4>
+                <div class="number" id="count-members">0</div>
+            </div>
+            <div class="stat-card">
+                <h4>רעיונות שנרשמו</h4>
+                <div class="number" id="count-ideas">0</div>
+            </div>
+            <div class="stat-card">
+                <h4>הסכמי סודיות חתומים</h4>
+                <div class="number" id="count-ndas">0</div>
+            </div>
+            <div class="stat-card">
+                <h4>תבניות טקסט מוכנות</h4>
+                <div class="number" id="count-templates">0</div>
+            </div>
+        </div>
+
+        <div class="search-container">
+            <input type="text" id="global-search" class="search-control" placeholder="חיפוש מהיר במאגר..." oninput="filterCurrentTable()">
+        </div>
+
+        <!-- ניווט טאבים מורחב -->
+        <div class="tabs-nav">
+            <button class="tab-btn active" onclick="switchTab('members')">רשימת מצטרפות</button>
+            <button class="tab-btn" onclick="switchTab('ideas')">רעיונות והצעות</button>
+            <button class="tab-btn" onclick="switchTab('ndas')">חתימות סודיות</button>
+            <button class="tab-btn" onclick="switchTab('links')">קישורים וקודים</button>
+            <button class="tab-btn" onclick="switchTab('testimonials')">המלצות ⭐️</button>
+            <button class="tab-btn" onclick="switchTab('passwords')">סיסמאות והערות</button>
+            <button class="tab-btn" onclick="switchTab('templates')">תבניות הודעות להעתקה</button>
+        </div>
+
+        <!-- טאב 1: מצטרפות -->
+        <div id="tab-members" class="tab-content active">
+            <div class="panel-grid">
+                <div class="card">
+                    <h3>הוספת מצטרפת חדשה</h3>
+                    <form id="form-member" onsubmit="addData(event, 'members')">
+                        <div class="form-group">
+                            <label>שם מלא:</label>
+                            <input type="text" id="member-name" class="form-control" required>
+                        </div>
+                        <div class="form-group">
+                            <label>כתובת אימייל:</label>
+                            <input type="email" id="member-email" class="form-control" required>
+                        </div>
+                        <div class="form-group">
+                            <label>סטטוס פנייה:</label>
+                            <input type="text" id="member-status" class="form-control" placeholder="למשל: ממתינה, נשלח מייל">
+                        </div>
+                        <button type="submit" class="btn">שמירה במערכת</button>
+                    </form>
+                </div>
+                <div class="table-container">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>שם מלא</th>
+                                <th>אימייל</th>
+                                <th>סטטוס</th>
+                                <th>פעולות</th>
+                            </tr>
+                        </thead>
+                        <tbody id="table-members"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- טאב 2: רעיונות -->
+        <div id="tab-ideas" class="tab-content">
+            <div class="panel-grid">
+                <div class="card">
+                    <h3>תיעוד רעיון חדש</h3>
+                    <form id="form-idea" onsubmit="addData(event, 'ideas')">
+                        <div class="form-group">
+                            <label>שם הכותבת:</label>
+                            <input type="text" id="idea-author" class="form-control" required>
+                        </div>
+                        <div class="form-group">
+                            <label>הרעיון / ההצעה:</label>
+                            <textarea id="idea-text" class="form-control" required placeholder="מה הבת כתבה לך במייל..."></textarea>
+                        </div>
+                        <button type="submit" class="btn">שמירת רעיון</button>
+                    </form>
+                </div>
+                <div class="table-container">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>שם הכותבת</th>
+                                <th>הרעיון</th>
+                                <th>פעולות</th>
+                            </tr>
+                        </thead>
+                        <tbody id="table-ideas"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- טאב 3: הסכמי סודיות -->
+        <div id="tab-ndas" class="tab-content">
+            <div class="panel-grid">
+                <div class="card">
+                    <h3>תיעוד מסמך סודיות</h3>
+                    <form id="form-nda" onsubmit="addData(event, 'ndas')">
+                        <div class="form-group">
+                            <label>שם החותם/ת:</label>
+                            <input type="text" id="nda-name" class="form-control" required>
+                        </div>
+                        <div class="form-group">
+                            <label>העלאת תמונת המסמך החתום:</label>
+                            <div class="file-upload-wrapper">
+                                <span class="file-upload-text" id="nda-file-label">לחצי לבחירת תמונה או גרירה</span>
+                                <input type="file" id="nda-file" accept="image/*" onchange="handleFileSelect(this, 'nda-file-label')" required>
+                            </div>
+                        </div>
+                        <button type="submit" class="btn">שמירת חתימה</button>
+                    </form>
+                </div>
+                <div class="table-container">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>שם החותם/ת</th>
+                                <th>צפייה במסמך</th>
+                                <th>פעולות</th>
+                            </tr>
+                        </thead>
+                        <tbody id="table-ndas"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- טאב 4: קודים וקישורים -->
+        <div id="tab-links" class="tab-content">
+            <div class="panel-grid">
+                <div class="card">
+                    <h3>שמירת קוד או קישור</h3>
+                    <form id="form-link" onsubmit="addData(event, 'links')">
+                        <div class="form-group">
+                            <label>תיאור הקישור / הקוד:</label>
+                            <input type="text" id="link-desc" class="form-control" required>
+                        </div>
+                        <div class="form-group">
+                            <label>קישור או תוכן:</label>
+                            <textarea id="link-content" class="form-control" required></textarea>
+                        </div>
+                        <button type="submit" class="btn">שמירה במאגר</button>
+                    </form>
+                </div>
+                <div class="table-container">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>תיאור</th>
+                                <th>תוכן / קישור</th>
+                                <th>פעולות</th>
+                            </tr>
+                        </thead>
+                        <tbody id="table-links"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- טאב 5: המלצות -->
+        <div id="tab-testimonials" class="tab-content">
+            <div class="panel-grid">
+                <div class="card">
+                    <h3>הוספת המלצה / פידבק</h3>
+                    <form id="form-testimonial" onsubmit="addData(event, 'testimonials')">
+                        <div class="form-group">
+                            <label>שם / מקור ההמלצה:</label>
+                            <input type="text" id="test-name" class="form-control" required>
+                        </div>
+                        <div class="form-group">
+                            <label>העלאת תמונת צילום מסך:</label>
+                            <div class="file-upload-wrapper">
+                                <span class="file-upload-text" id="test-file-label">לחצי לבחירת תמונה</span>
+                                <input type="file" id="test-file" accept="image/*" onchange="handleFileSelect(this, 'test-file-label')" required>
+                            </div>
+                        </div>
+                        <button type="submit" class="btn">שמירת המלצה</button>
+                    </form>
+                </div>
+                <div class="table-container">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>מקור</th>
+                                <th>תמונה</th>
+                                <th>פעולות</th>
+                            </tr>
+                        </thead>
+                        <tbody id="table-testimonials"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- טאב 6: סיסמאות והערות (חדש!) -->
+        <div id="tab-passwords" class="tab-content">
+            <div class="panel-grid">
+                <div class="card">
+                    <h3>שמירת סיסמה או הערה חשובה</h3>
+                    <form id="form-password" onsubmit="addData(event, 'passwords')">
+                        <div class="form-group">
+                            <label>שם המערכת / נושא:</label>
+                            <input type="text" id="pass-system" class="form-control" placeholder="למשל: גיטהאב, שרת אחסון" required>
+                        </div>
+                        <div class="form-group">
+                            <label>שם משתמש (אופציונלי):</label>
+                            <input type="text" id="pass-user" class="form-control">
+                        </div>
+                        <div class="form-group">
+                            <label>סיסמה / הערות:</label>
+                            <input type="text" id="pass-value" class="form-control" placeholder="הכניסי סיסמה או טקסט חשוב..." required>
+                        </div>
+                        <button type="submit" class="btn">שמירה מאובטחת</button>
+                    </form>
+                </div>
+                <div class="table-container">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>מערכת / נושא</th>
+                                <th>שם משתמש</th>
+                                <th>סיסמה / הערה</th>
+                                <th>פעולות</th>
+                            </tr>
+                        </thead>
+                        <tbody id="table-passwords"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- טאב 7: תבניות טקסט להעתקה (חדש!) -->
+        <div id="tab-templates" class="tab-content">
+            <div class="panel-grid">
+                <div class="card">
+                    <h3>יצירת תבנית טקסט חדשה לשליחה</h3>
+                    <form id="form-template" onsubmit="addData(event, 'templates')">
+                        <div class="form-group">
+                            <label>שם התבנית (לזיהוי מהיר):</label>
+                            <input type="text" id="tpl-name" class="form-control" placeholder="למשל: תשובה למישהי שרשמה רעיון" required>
+                        </div>
+                        <div class="form-group">
+                            <label>תוכן ההודעה:</label>
+                            <textarea id="tpl-content" class="form-control" placeholder="היי! תודה רבה על הפנייה..." required></textarea>
+                        </div>
+                        <button type="submit" class="btn">שמירת תבנית</button>
+                    </form>
+                </div>
+                <div class="table-container">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>שם התבנית</th>
+                                <th>תוכן ההודעה</th>
+                                <th>פעולות</th>
+                            </tr>
+                        </thead>
+                        <tbody id="table-templates"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- פופ-אפ תמונות -->
+    <div id="lightbox" class="lightbox" onclick="closeLightbox()">
+        <button class="lightbox-close">&times;</button>
+        <img id="lightbox-img" src="" alt="תצוגה מוגדלת">
+    </div>
+
+    <footer>
+        <p>© 2026 MIRIPRATY. כל הזכויות שמורות. | ליצירת קשר ותמיכה במערכת המותג: <a href="mailto:swift84529@gmail.com">swift84529@gmail.com</a></p>
+    </footer>
+
+    <script>
+        let currentTab = 'members';
+        let tempBase64Data = "";
+
+        // אתחול טקסטים מוכנים מראש אם הרשימה ריקה!
+        if (!localStorage.getItem('miripraty_templates')) {
+            let defaultTemplates = [
+                { name: "הודעת ברוכה הבאה לקבוצה", content: "היי! איזה כיף שהצטרפת לרשימה של MIRIPRATY. אנחנו מתרגשות להתחיל! אשלח לך עדכונים בקרוב." },
+                { name: "בקשה לחתימה על סודיות", content: "היי, תודה על ההצעה. כדי שנוכל להתקדם עם הרעיון, אשמח שתחתמי על הסכם הסודיות הקצר שלנו כאן בקישור (ואז תשלחי לי חזרה)." }
+            ];
+            localStorage.setItem('miripraty_templates', JSON.stringify(defaultTemplates));
+        }
+
+        function switchTab(tabName) {
+            currentTab = tabName;
+            document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active'));
+            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+            
+            document.getElementById('tab-' + tabName).classList.add('active');
+            event.currentTarget.classList.add('active');
+            
+            document.getElementById('global-search').value = "";
+            filterCurrentTable();
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const tabs = ['members', 'ideas', 'ndas', 'links', 'testimonials', 'passwords', 'templates'];
+            tabs.forEach(tab => renderTable(tab));
+            updateCounters();
+        });
+
+        function updateCounters() {
+            const tabsToCount = ['members', 'ideas', 'ndas', 'templates'];
+            tabsToCount.forEach(tab => {
+                const data = JSON.parse(localStorage.getItem('miripraty_' + tab)) || [];
+                const element = document.getElementById('count-' + tab);
+                if (element) element.innerText = data.length;
+            });
+        }
+
+        function handleFileSelect(input, labelId) {
+            const file = input.files[0];
+            if (file) {
+                document.getElementById(labelId).innerText = "קובץ נבחר: " + file.name;
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    tempBase64Data = e.target.result;
+                };
+                reader.readAsDataURL(file);
+            }
+        }
+
+        function addData(event, type) {
+            event.preventDefault();
+            let dataStore = JSON.parse(localStorage.getItem('miripraty_' + type)) || [];
+            let newItem = {};
+
+            if (type === 'members') {
+                newItem = { name: document.getElementById('member-name').value, email: document.getElementById('member-email').value, status: document.getElementById('member-status').value || 'חדש' };
+                document.getElementById('form-member').reset();
+            } else if (type === 'ideas') {
+                newItem = { author: document.getElementById('idea-author').value, text: document.getElementById('idea-text').value };
+                document.getElementById('form-idea').reset();
+            } else if (type === 'ndas') {
+                newItem = { name: document.getElementById('nda-name').value, image: tempBase64Data };
+                document.getElementById('form-nda').reset();
+                document.getElementById('nda-file-label').innerText = "לחצי לבחירת תמונה או גרירה";
+                tempBase64Data = "";
+            } else if (type === 'links') {
+                newItem = { desc: document.getElementById('link-desc').value, content: document.getElementById('link-content').value };
+                document.getElementById('form-link').reset();
+            } else if (type === 'testimonials') {
+                newItem = { name: document.getElementById('test-name').value, image: tempBase64Data };
+                document.getElementById('form-testimonial').reset();
+                document.getElementById('test-file-label').innerText = "לחצי לבחירת תמונה";
+                tempBase64Data = "";
+            } else if (type === 'passwords') {
+                newItem = { system: document.getElementById('pass-system').value, user: document.getElementById('pass-user').value, pass: document.getElementById('pass-value').value };
+                document.getElementById('form-password').reset();
+            } else if (type === 'templates') {
+                newItem = { name: document.getElementById('tpl-name').value, content: document.getElementById('tpl-content').value };
+                document.getElementById('form-template').reset();
+            }
+
+            dataStore.push(newItem);
+            localStorage.setItem('miripraty_' + type, JSON.stringify(dataStore));
+            renderTable(type);
+            updateCounters();
+        }
+
+        function renderTable(type) {
+            const dataStore = JSON.parse(localStorage.getItem('miripraty_' + type)) || [];
+            const tbody = document.getElementById('table-' + type);
+            if (!tbody) return;
+            tbody.innerHTML = '';
+
+            if (dataStore.length === 0) {
+                let colCount = (type === 'members' || type === 'passwords') ? 4 : 3;
+                tbody.innerHTML = `<tr><td colspan="${colCount}" class="empty-state">אין עדיין נתונים שמורים.</td></tr>`;
+                return;
+            }
+
+            dataStore.forEach((item, index) => {
+                let row = document.createElement('tr');
+                let actionsHtml = `<button class="btn-sm btn-delete" onclick="deleteData('${type}', ${index})">מחק</button>`;
+                
+                if (type === 'members') {
+                    row.innerHTML = `
+                        <td><strong>${escapeHtml(item.name)}</strong></td>
+                        <td><a href="mailto:${escapeHtml(item.email)}" class="link-action">${escapeHtml(item.email)}</a></td>
+                        <td><span style="background: rgba(236, 72, 153, 0.1); color: var(--brand-pink); padding: 4px 8px; border-radius: 20px; font-size: 0.85rem; font-weight:600;">${escapeHtml(item.status)}</span></td>
+                    `;
+                } else if (type === 'ideas') {
+                    row.innerHTML = `
+                        <td><strong>${escapeHtml(item.author)}</strong></td>
+                        <td style="white-space: pre-wrap; max-width: 400px; color: #334155;">${escapeHtml(item.text)}</td>
+                    `;
+                } else if (type === 'ndas' || type === 'testimonials') {
+                    let imgHtml = item.image ? `<img src="${item.image}" class="thumbnail-preview" onclick="openLightbox('${item.image}')" title="לחצי להגדלה">` : `<span style="color:var(--text-muted)">אין תמונה</span>`;
+                    row.innerHTML = `
+                        <td><strong>${escapeHtml(item.name)}</strong></td>
+                        <td>${imgHtml}</td>
+                    `;
+                } else if (type === 'links') {
+                    let displayContent = item.content.startsWith('http') ? `<a href="${escapeHtml(item.content)}" target="_blank" class="link-action">פתיחת קישור 🔗</a>` : `<code style="background: #f1f5f9; padding: 4px 8px; border-radius: 6px; font-family: monospace; display:block; max-width:300px; overflow-x:auto;">${escapeHtml(item.content)}</code>`;
+                    row.innerHTML = `
+                        <td><strong>${escapeHtml(item.desc)}</strong></td>
+                        <td>${displayContent}</td>
+                    `;
+                } else if (type === 'passwords') {
+                    row.innerHTML = `
+                        <td><strong>${escapeHtml(item.system)}</strong></td>
+                        <td>${escapeHtml(item.user || '-')}</td>
+                        <td><code style="background: #f1f5f9; padding: 4px 8px; border-radius: 6px; color:#b11e6b;">${escapeHtml(item.pass)}</code></td>
+                    `;
+                    actionsHtml = `<button class="btn-sm btn-copy" onclick="copyToClipboard('${escapeHtml(item.pass)}')">העתק סיסמה</button> ` + actionsHtml;
+                } else if (type === 'templates') {
+                    row.innerHTML = `
+                        <td><strong>${escapeHtml(item.name)}</strong></td>
+                        <td style="white-space: pre-wrap; max-width: 400px; color: #334155;">${escapeHtml(item.content)}</td>
+                    `;
+                    actionsHtml = `<button class="btn-sm btn-copy" onclick="copyToClipboard('${escapeHtml(item.content.replace(/'/g, "\\'"))}')">העתק טקסט</button> ` + actionsHtml;
+                }
+
+                let actionsTd = document.createElement('td');
+                actionsTd.innerHTML = `<div class="action-buttons">${actionsHtml}</div>`;
+                row.appendChild(actionsTd);
+                tbody.appendChild(row);
+            });
+        }
+
+        function deleteData(type, index) {
+            if (confirm('האם למחוק פריט זה מהרשימה?')) {
+                let dataStore = JSON.parse(localStorage.getItem('miripraty_' + type)) || [];
+                dataStore.splice(index, 1);
+                localStorage.setItem('miripraty_' + type, JSON.stringify(dataStore));
+                renderTable(type);
+                updateCounters();
+            }
+        }
+
+        // פונקציית העתקה מהירה ללוח
+        function copyToClipboard(text) {
+            if(navigator.clipboard && window.isSecureContext) {
+                navigator.clipboard.writeText(text).then(() => {
+                    alert("הועתק בהצלחה! 📋");
+                });
+            } else {
+                let textArea = document.createElement("textarea");
+                textArea.value = text;
+                document.body.appendChild(textArea);
+                textArea.focus();
+                textArea.select();
+                try {
+                    document.execCommand('copy');
+                    alert("הועתק בהצלחה! 📋");
+                } catch (err) {
+                    console.error('שגיאה בהעתקה', err);
+                }
+                document.body.removeChild(textArea);
+            }
+        }
+
+        function filterCurrentTable() {
+            const query = document.getElementById('global-search').value.toLowerCase();
+            const rows = document.querySelectorAll(`#table-${currentTab} tr`);
+            
+            rows.forEach(row => {
+                if(row.querySelector('.empty-state')) return;
+                const text = row.innerText.toLowerCase();
+                row.style.display = text.includes(query) ? "" : "none";
+            });
+        }
+
+        function openLightbox(src) {
+            document.getElementById('lightbox-img').src = src;
+            document.getElementById('lightbox').classList.add('active');
+        }
+
+        function closeLightbox() {
+            document.getElementById('lightbox').classList.remove('active');
+        }
+
+        function escapeHtml(text) {
+            let div = document.createElement('div');
+            div.innerText = text;
+            return div.innerHTML;
+        }
+    </script>
+</body>
+</html>
